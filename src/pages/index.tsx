@@ -1,21 +1,21 @@
 import React from "react";
 import "./style.scss";
 
-import { Input } from "./Input";
+import { useTodoInput } from "./Input";
 
 export const ToDoList = () => {
   const {
     input,
-    onChange,
-    onClick,
     list,
-    onRemove,
-    onOpenUpdate,
-    edit,
     updateInput,
-    onChangeUpdate,
-    onCloseUpdate,
-  } = Input();
+    edit,
+    onChangeInput,
+    onCreateItem,
+    onDeleteItem,
+    onOpenUpdate,
+    onUpdate,
+    onChangeUpdateInput,
+  } = useTodoInput();
 
   return (
     <div className="pageJSX">
@@ -26,43 +26,42 @@ export const ToDoList = () => {
             className="input"
             placeholder="What To Do?"
             name="todo"
-            value={input.todo}
-            onChange={onChange}
+            value={input}
+            onChange={onChangeInput}
           />
-          <button className="inputButton" onClick={onClick}>
+          <button className="inputButton" onClick={onCreateItem}>
             등록
           </button>
         </div>
         <div className="listBox">
-          {list.map((item) =>
-            item.id === -1 ? (
-              <div className="empty" />
-            ) : (
-              <div className="list" key={item.id}>
-                {edit.id === item.id ? (
-                  <input
-                    className="updateInput"
-                    name="todo"
-                    value={updateInput.todo}
-                    onChange={onChangeUpdate}
-                  />
-                ) : (
-                  <div className="listItem" onClick={onOpenUpdate(item)}>
-                    {item.todo}
-                  </div>
-                )}
-                {edit.id === item.id ? (
-                  <button className="button" onClick={onCloseUpdate(item.id)}>
-                    수정
-                  </button>
-                ) : (
-                  <button className="button" onClick={onRemove(item.id)}>
-                    삭제
-                  </button>
-                )}
-              </div>
-            )
-          )}
+          {list.map((item) => (
+            <div className="list" key={item.key}>
+              {edit === item.key ? (
+                <input
+                  className="updateInput"
+                  name="todo"
+                  value={updateInput}
+                  onChange={onChangeUpdateInput}
+                />
+              ) : (
+                <div className="listItem" onClick={() => onOpenUpdate(item)}>
+                  {item.todo}
+                </div>
+              )}
+              {edit === item.key ? (
+                <button className="button" onClick={() => onUpdate(item.key)}>
+                  수정
+                </button>
+              ) : (
+                <button
+                  className="button"
+                  onClick={() => onDeleteItem(item.key)}
+                >
+                  삭제
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

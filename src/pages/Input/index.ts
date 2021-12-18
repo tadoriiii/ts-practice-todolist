@@ -1,90 +1,93 @@
 import React, { useCallback, useState } from "react";
 
-export type TInput = {
+export type TItem = {
+  key: number;
   todo: string;
 };
 
-export type TList = TInput & { id: number };
+type TUseTodoInput = {
+  input: string;
+  list: TItem[];
+  updateInput: string;
+  edit: number;
+  onChangeInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChangeUpdateInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onCreateItem: () => void;
+  onDeleteItem: (key: number) => void;
+  onOpenUpdate: (list: TItem) => void;
+  onUpdate: (key: number) => void;
+};
 
-export const Input = () => {
-  const [input, setInput] = useState<TInput>({ todo: "" });
-  const [list, setList] = useState<TList[]>([{ todo: "", id: -1 }]);
-  // const [edit, setEdit] = useState<TList[]>([]);
-  // const [edit, setEdit] = useState<boolean>(false);
-  const [edit, setEdit] = useState<TList>({ todo: "", id: -1 });
-  const [updateInput, setUpdateInput] = useState<TInput>({ todo: "" });
+export const useTodoInput = (): TUseTodoInput => {
+  const [key, setKey] = useState<number>(0);
+  const [input, setInput] = useState<string>("");
+  const [updateInput, setUpdateInput] = useState<string>("");
+  const [list, setList] = useState<TItem[]>([]);
+  const [edit, setEdit] = useState<number>(-1);
 
-  // console.log("input", input);
-  console.log("list", list);
-  console.log("updateInput", updateInput);
-  console.log("edit", edit);
-
-  const onChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setInput({ ...input, [name]: value });
+  const onChangeInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>): void => {
+      const { value } = e.target;
+      setInput(value);
     },
-    [setInput, input]
+    []
   );
 
-  const onClick = useCallback(() => {
-    const id = list.length === 0 ? 0 : list[list.length - 1].id + 1;
-    setList((list) => [...list, { ...input, id }]);
-    setInput({ todo: "" });
-  }, [input, list]);
+  const onCreateItem = useCallback((): void => {
+    const item = { key, todo: input };
 
-  const onRemove = useCallback(
-    (id: number) => {
-      return () => {
-        setList(list.filter((list) => list.id !== id));
-      };
+    setList((list) => [...list, item]);
+
+    setKey((key) => (key += 1));
+    setInput("");
+  }, [key, input]);
+
+  const onDeleteItem = useCallback(
+    (key: number) => {
+      const sortedList = list.filter((item) => item.key !== key);
+      setList(sortedList);
     },
     [list]
   );
 
-  const onOpenUpdate = useCallback(
-    (item: TList) => {
-      return () => {
-        // console.log("updateInputId", item);
-        setEdit({ ...edit, todo: item.todo, id: item.id });
-        setUpdateInput({ todo: item.todo });
-      };
-    },
-    [edit]
-  );
-
-  const onChangeUpdate = useCallback(
+  const onChangeUpdateInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setUpdateInput({ ...updateInput, [name]: value });
+      const { value } = e.target;
+      setUpdateInput(value);
     },
-    [updateInput]
+    []
   );
 
-  const onCloseUpdate = useCallback(
-    (id: number) => {
-      return () => {
-        setList(
-          list.map((item) =>
-            item.id === id ? { ...item, ...updateInput } : item
-          )
-        );
-        setEdit({ todo: "", id: -1 });
-      };
+  const onOpenUpdate = useCallback((list: TItem) => {
+    setEdit(list.key);
+    setUpdateInput(list.todo);
+  }, []);
+
+  const onUpdate = useCallback(
+    (key: number) => {
+      const updatedList: TItem[] = list.map((item) => {
+        if (item.key === key) return { key, todo: updateInput };
+        else return item;
+      });
+
+      setList(updatedList);
+
+      setUpdateInput("");
+      setEdit(-1);
     },
     [list, updateInput]
   );
 
   return {
     input,
-    onChange,
-    onClick,
     list,
-    onRemove,
-    onOpenUpdate,
-    edit,
     updateInput,
-    onChangeUpdate,
-    onCloseUpdate,
+    edit,
+    onChangeInput,
+    onCreateItem,
+    onDeleteItem,
+    onOpenUpdate,
+    onUpdate,
+    onChangeUpdateInput,
   };
 };
